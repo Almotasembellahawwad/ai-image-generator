@@ -64,7 +64,7 @@ Before you begin, ensure you have met the following requirements:
 
 **1. Clone the repository:**
 ```bash
-git clone https://github.com/mohasbks/ai-image-generator.git
+git clone https://github.com/Almotasembellahawwad/ai-image-generator.git
 cd ai-image-generator
 ```
 
@@ -130,7 +130,7 @@ Contributions make the open-source community an amazing place to learn, inspire,
   <a href="mailto:235179@gmail.com">
     <img src="https://img.shields.io/badge/Email-D14836?style=flat-square&logo=gmail&logoColor=white" alt="Email" />
   </a>
-  <a href="https://github.com/mohasbks">
+  <a href="https://github.com/Almotasembellahawwad">
     <img src="https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=github&logoColor=white" alt="GitHub" />
   </a>
 </div>
