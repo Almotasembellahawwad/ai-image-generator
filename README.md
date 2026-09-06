@@ -25,7 +25,7 @@
 ## ✨ Features
 
 - 🖼️ **Text-to-Image Generation:** Generate high-quality visuals simply by describing them.
-- 🎯 **State-of-the-Art Model:** Powered by the cutting-edge Stable Diffusion XL.
+- 🎯 **Modern inference:** Uses Hugging Face Inference Providers with a configurable FLUX default.
 - 💫 **Modern UI:** Beautiful, dark-themed responsive interface with glass-morphism effects.
 - 🔄 **History Tracking:** Automatically keeps track of your image generation history.
 - ⬇️ **One-Click Download:** Save generated images directly to your local machine.
@@ -74,10 +74,10 @@ pip install -r requirements.txt
 ```
 
 **3. Configure Environment Variables:**  
-Create a `.env` file in the root directory and add your Hugging Face tokens:
+Copy `.env.example` to `.env` and add one Hugging Face token:
 ```env
-HUGGINGFACE_READ_TOKEN=your_read_token_here
-HUGGINGFACE_WRITE_TOKEN=your_write_token_here
+HF_TOKEN=hf_your_token_here
+# Optional: HF_IMAGE_MODEL and HF_PROVIDER
 ```
 
 **4. Run the application:**
@@ -119,7 +119,7 @@ Contributions make the open-source community an amazing place to learn, inspire,
 ## 🙏 Acknowledgments
 
 - [Hugging Face](https://huggingface.co/) for their amazing AI endpoints.
-- [Stability AI](https://stability.ai/) for the Stable Diffusion XL model.
+- [Black Forest Labs](https://blackforestlabs.ai/) for the default FLUX model family.
 - [TailwindCSS](https://tailwindcss.com/) for the styling framework.
 - [Font Awesome](https://fontawesome.com/) for the UI icons.
 
@@ -127,7 +127,7 @@ Contributions make the open-source community an amazing place to learn, inspire,
 
 <div align="center">
   <p><b>Built with ❤️ by Motasem Bellah</b></p>
-  <a href="mailto:235179@gmail.com">
+  <a href="mailto:Almotasembellahawwad@gmail.com">
     <img src="https://img.shields.io/badge/Email-D14836?style=flat-square&logo=gmail&logoColor=white" alt="Email" />
   </a>
   <a href="https://github.com/Almotasembellahawwad">

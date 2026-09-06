@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Image Generator 2050</title>
+    <title>AI Image Generator — Fast Text-to-Image Studio</title>
+    <meta name="description" content="Create original images from text prompts with a modern Hugging Face inference pipeline.">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -105,7 +106,7 @@
                 0 0 0 40px rgba(191, 0, 255, 0.01);
         }
 
-        textarea {
+        textarea, select {
             font-family: var(--font-body);
             font-size: 1.25rem;
             line-height: 1.75;
@@ -132,6 +133,14 @@
         textarea::placeholder {
             color: var(--text-secondary);
             opacity: 0.7;
+        }
+
+        select { height: 52px; border-radius: 12px; padding: 0 14px; font-size: 1rem; }
+        @media (max-width: 640px) {
+            body { padding-top: 2rem !important; }
+            h1 { font-size: 2.5rem !important; line-height: 1.1 !important; }
+            .card { padding: 1.5rem !important; border-radius: 18px; }
+            .result-heading { align-items: flex-start !important; gap: 1rem; flex-direction: column; }
         }
 
         .btn-primary {
@@ -332,7 +341,8 @@
             <h1 class="text-7xl font-black mb-8 title-gradient tracking-wider">
                 AI Image Generator
             </h1>
-            <p class="text-3xl subtitle-gradient font-medium tracking-wide">Transform your dreams into digital art</p>
+            <p class="text-3xl subtitle-gradient font-medium tracking-wide">Turn a clear idea into original visual directions</p>
+            <p id="serviceStatus" class="mt-5 text-sm text-gray-400" role="status">Checking inference service…</p>
         </div>
         
         <div class="grid gap-12">
@@ -342,7 +352,26 @@
                     <label for="prompt" class="block text-gray-300 font-bold mb-6 text-2xl neon-blue">Describe your vision</label>
                     <textarea id="prompt" 
                         class="w-full px-8 py-6 rounded-xl focus:outline-none"
-                        placeholder="Let your imagination run wild... 🎨"></textarea>
+                        maxlength="1500"
+                        placeholder="A quiet editorial portrait, soft window light, muted earth tones..."></textarea>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5">
+                        <label class="text-sm text-gray-400">Visual style
+                            <select id="style" class="w-full mt-2">
+                                <option value="none">Prompt only</option>
+                                <option value="photo">Editorial photo</option>
+                                <option value="cinematic">Cinematic</option>
+                                <option value="illustration">Illustration</option>
+                                <option value="minimal">Minimal</option>
+                            </select>
+                        </label>
+                        <label class="text-sm text-gray-400">Aspect ratio
+                            <select id="aspect" class="w-full mt-2">
+                                <option value="square">Square · 1:1</option>
+                                <option value="landscape">Landscape · 3:2</option>
+                                <option value="portrait">Portrait · 2:3</option>
+                            </select>
+                        </label>
+                    </div>
                 </div>
                 
                 <!-- Generate Button -->
@@ -350,19 +379,19 @@
                     <button id="generateBtn" 
                         class="btn-primary text-xl flex items-center">
                         <i class="fas fa-wand-magic-sparkles mr-4 text-2xl"></i>
-                        Generate Magic
+                        Generate Image
                     </button>
                     
                     <div id="loading" class="hidden flex flex-col items-center mt-12">
                         <div class="loading-spinner mb-6"></div>
-                        <p class="text-gray-400 text-2xl neon-blue">Creating your masterpiece...</p>
+                        <p class="text-gray-400 text-2xl neon-blue">Generating with the selected model…</p>
                     </div>
                 </div>
             </div>
 
             <!-- Result Section -->
             <div id="resultSection" class="card p-10 hidden fade-in">
-                <div class="flex justify-between items-center mb-8">
+                <div class="result-heading flex justify-between items-center mb-8">
                     <h3 class="text-3xl font-bold title-gradient">Your Creation</h3>
                     <button id="downloadBtn" class="btn-primary px-8 py-4 text-lg flex items-center">
                         <i class="fas fa-download mr-3"></i>
@@ -372,6 +401,7 @@
                 <div class="flex justify-center">
                     <img id="generatedImage" class="generated-image hidden" alt="Generated image">
                 </div>
+                <p id="generationMeta" class="mt-5 text-center text-sm text-gray-400"></p>
             </div>
 
             <!-- History Section -->
@@ -387,7 +417,7 @@
         <div id="error" class="text-red-400 text-center mt-8 hidden fade-in">
             <p class="error-message font-medium text-xl"></p>
             <p class="text-sm mt-3 text-gray-500">
-                If you're seeing an authorization error, please make sure your token has the correct permissions.
+                Check the message above, then retry. Deployment configuration errors must be fixed by the site owner.
             </p>
         </div>
         
@@ -401,7 +431,14 @@
     </div>
 
     <script>
-        const imageHistory = [];
+        fetch('/api/health')
+            .then(response => response.json())
+            .then(data => {
+                const status = document.getElementById('serviceStatus');
+                status.textContent = data.configured ? `Ready · ${data.model}` : 'Configuration required · add HF_TOKEN';
+                status.style.color = data.configured ? 'var(--accent-neon)' : '#f59e0b';
+            })
+            .catch(() => { document.getElementById('serviceStatus').textContent = 'Service status unavailable'; });
 
         // Collection of creative prompts
         const prompts = [
@@ -463,7 +500,9 @@
 
         // Generate image
         document.getElementById('generateBtn').addEventListener('click', async () => {
-            const prompt = document.getElementById('prompt').value;
+            const prompt = document.getElementById('prompt').value.trim();
+            const style = document.getElementById('style').value;
+            const aspect = document.getElementById('aspect').value;
             const loading = document.getElementById('loading');
             const error = document.getElementById('error');
             const errorMessage = error.querySelector('.error-message');
@@ -489,18 +528,19 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ prompt }),
+                    body: JSON.stringify({ prompt, style, aspect }),
                 });
 
                 const data = await response.json();
 
-                if (data.error) {
-                    throw new Error(data.error);
+                if (!response.ok || data.error) {
+                    throw new Error(data.error || 'Image generation failed');
                 }
 
                 generatedImage.src = data.image;
                 generatedImage.classList.remove('hidden');
                 resultSection.classList.remove('hidden');
+                document.getElementById('generationMeta').textContent = `Generated with ${data.model} · ${data.aspect}`;
 
                 // Add to history
                 addToHistory(data.image, prompt);
